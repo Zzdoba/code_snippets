@@ -8,6 +8,7 @@ chat = int(os.environ['CHAT'])
 bot = telebot.TeleBot(token)
 target_path = "/my-project-dbt/target"
 
+
 # notification func with a link to elementary dashboard
 def notify(alert):
     message = f'''
@@ -15,16 +16,18 @@ def notify(alert):
 
 <b>Failure in test</b>
 
-<a href="https://storage.cloud.google.com/dbt__elementary/index.html">{alert}</a>
+<a href="https://storage.cloud.google.com/dbt__elementary/index.html">\
+{alert}</a>
     '''
     bot.send_message(chat, message, parse_mode='HTML')
+
 
 # main func with run_results and sources parsing after `dbt test`
 def process():
     try:
         with open(os.path.join(target_path, "run_results.json")) as json_file:
             data = json.load(json_file)
-        
+
         for res in data['results']:
             if res['status'] == 'fail':
                 notify(res['unique_id'].split('.')[2])
@@ -42,6 +45,7 @@ def process():
         print('there are no sources')
 
     print('telegram alerts success')
+
 
 if __name__ == '__main__':
     process()
