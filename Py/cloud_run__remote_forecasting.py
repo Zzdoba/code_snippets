@@ -8,21 +8,28 @@ app = Flask(__name__)
 
 
 def process_calls(calls: list):
-    ds = []
-    y = []
+
+    # getting data from request
+    ds, y = [], []
     for call in calls:
         ds.append(datetime.datetime.strptime(call[0], '%Y-%m-%d'))
         y.append(call[1])
         interval_width = call[2]
+
+    # making dataframe
     df = pd.DataFrame({'ds': ds, 'y': y})
     data = df.sort_values('ds')
-    data_train = data[data['ds'] <= data['ds'].max()]
+    data_train = data[data['ds'] < data['ds'].max()]
+
+    # making prediction
     m = Prophet(interval_width=interval_width)
     m.fit(data_train)
-    future = m.make_future_dataframe(periods=0)
+    future = m.make_future_dataframe(periods=1)
     forecast = m.predict(future)
     df_predict = forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']]
     df_full = df_predict.merge(data, how='left', on='ds')
+
+    # making & returning result
     result = []
     for i in range(len(df_full)):
         result.append({
